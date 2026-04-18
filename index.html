@@ -3,58 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سوق مول 3 - SOOK MALL</title>
+    <title>SOOK MALL | سوق مول 3</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        h1 { color: #1a73e8; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #218838; opacity: 0.9; }
-        .btn-seller { background-color: #007bff; }
+        :root {
+            --primary-color: #febd69; /* لون أمازون الشهير */
+            --secondary-color: #232f3e;
+            --bg-color: #eaeded;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        /* الهيدر العلوي */
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .container { 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            padding: 20px; 
+        }
+
+        /* لوحة التحكم والدخول */
+        .card-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input, select, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            border: 1px solid #ddd; 
+            font-size: 16px;
+        }
+
+        button { 
+            background-color: var(--primary-color); 
+            color: #111; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+
+        button:hover { background-color: #f3a847; }
+
         .hidden { display: none; }
-        .product-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        .product-card img { width: 100%; height: 200px; object-fit: contain; border-radius: 8px; }
+
+        /* شبكة المنتجات (زي أمازون) */
+        #productsList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.3s;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-card h3 {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+            height: 50px;
+            overflow: hidden;
+        }
+
+        .price {
+            font-size: 22px;
+            color: #B12704; /* لون السعر في أمازون */
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .seller-info {
+            font-size: 14px;
+            color: #565959;
+            margin-bottom: 15px;
+        }
+
+        .whatsapp-btn {
+            background-color: #25d366;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
 
+<header>SOOK MALL 3 - سوق مول</header>
+
 <div class="container">
-    <h1>SOOK MALL 3 🛒</h1>
     
-    <div id="loginSection">
-        <h3>تسجيل الدخول</h3>
-        <input type="text" id="userName" placeholder="اسمك">
+    <div id="loginSection" class="card-panel">
+        <h3 style="text-align: center;">تسجيل الدخول للمول</h3>
+        <input type="text" id="userName" placeholder="الاسم بالكامل">
         <input type="text" id="userPhone" placeholder="رقم الموبايل">
         <select id="userRole">
-            <option value="buyer">أنا مشتري</option>
-            <option value="seller">أنا تاجر</option>
+            <option value="buyer">أنا مشتري (أتسوق)</option>
+            <option value="seller">أنا تاجر (أعرض منتجاتي)</option>
         </select>
-        <button onclick="handleLogin()">دخول المول</button>
+        <button onclick="handleLogin()">ابدأ الآن</button>
     </div>
 
-    <div id="sellerSection" class="hidden">
-        <h2 style="color: #007bff;">لوحة التاجر</h2>
-        <input type="text" id="pName" placeholder="اسم المنتج">
-        <input type="number" id="pPrice" placeholder="السعر بالجنيه">
-        <input type="text" id="pImg" placeholder="الصق رابط الصورة هنا (Image Address)">
-        <button class="btn-seller" onclick="uploadProduct()">نشر المنتج الآن</button>
-        <button onclick="logout()" style="background:#dc3545">تسجيل خروج</button>
+    <div id="sellerSection" class="hidden card-panel">
+        <h2 style="color: var(--secondary-color); text-align: center;">إضافة منتج جديد</h2>
+        <input type="text" id="pName" placeholder="ماذا تبيع؟ (عنوان المنتج)">
+        <input type="number" id="pPrice" placeholder="السعر (جنيه)">
+        <input type="text" id="pImg" placeholder="رابط صورة المنتج">
+        <button onclick="uploadProduct()">نشر المنتج في الموقع</button>
+        <button onclick="logout()" style="background:#ddd; color: #333; margin-top: 20px;">خروج</button>
     </div>
 
     <div id="buyerSection" class="hidden">
-        <h2 style="color: #28a745;">المنتجات المعروضة</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">أحدث العروض</h2>
+            <button onclick="logout()" style="width: auto; background:#333; padding: 5px 20px;">خروج</button>
+        </div>
         <div id="productsList"></div>
-        <button onclick="logout()" style="background:#dc3545">تسجيل خروج</button>
     </div>
 </div>
 
 <script>
-    // إعداداتك الحقيقية من الصور اللي بعتها
     const firebaseConfig = {
         apiKey: "AIzaSyB6vS-tFOnx17I6Z2O3jYmP8hC5_N6qJ4",
         authDomain: "sook-mall3.firebaseapp.com",
@@ -85,7 +206,7 @@
                 loadProducts();
             }
         } else {
-            alert("اكتب اسمك ورقمك يا بطل!");
+            alert("بياناتك ناقصة يا بطل!");
         }
     }
 
@@ -96,21 +217,17 @@
 
         if(name && price && image) {
             database.ref('products').push({
-                name: name,
-                price: price,
-                image: image,
+                name, price, image,
                 sellerName: userData.name,
                 sellerPhone: userData.phone
             }).then(() => {
-                alert("مبروك! المنتج نزل في المول 🎉");
+                alert("تم إضافة منتجك بنجاح!");
                 document.getElementById('pName').value = '';
                 document.getElementById('pPrice').value = '';
                 document.getElementById('pImg').value = '';
-            }).catch((err) => {
-                alert("حصل خطأ: " + err.message);
             });
         } else {
-            alert("املأ كل الخانات الأول!");
+            alert("املأ كل البيانات!");
         }
     }
 
@@ -122,11 +239,15 @@
                 const p = child.val();
                 list.innerHTML += `
                     <div class="product-card">
-                        <img src="${p.image}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-                        <h3>${p.name}</h3>
-                        <p>السعر: <b>${p.price} جنيه</b></p>
-                        <p>البائع: ${p.sellerName}</p>
-                        <button onclick="window.open('https://wa.me/${p.sellerPhone}')" style="background:#25d366">واتساب</button>
+                        <img src="${p.image}" onerror="this.src='https://via.placeholder.com/300?text=Image+Error'">
+                        <div>
+                            <h3>${p.name}</h3>
+                            <p class="price">${p.price} ج.م</p>
+                            <p class="seller-info">البائع: ${p.sellerName}</p>
+                        </div>
+                        <a href="https://wa.me/${p.sellerPhone}" class="whatsapp-btn" target="_blank">
+                            طلب عبر واتساب
+                        </a>
                     </div>`;
             });
         });
