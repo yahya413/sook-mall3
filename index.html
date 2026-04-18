@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sook Mall Egypt | سوق مول المطور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root { --amazon-blue: #131921; --amazon-orange: #febd69; --light-bg: #eaeded; --success: #25d366; }
+        body { font-family: 'Cairo', sans-serif; background: var(--light-bg); margin: 0; color: #111; }
+
+        /* شاشة الدخول الاحترافية */
+        #authScreen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        .role-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .role-btn { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: #f9f9f9; font-weight: bold; }
+        .role-btn.active { background: var(--amazon-blue); color: white; border-color: var(--amazon-blue); }
+        .input-group { margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        
+        /* الهيدر */
+        header { background: var(--amazon-blue); color: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .nav-link { color: var(--amazon-orange); cursor: pointer; text-decoration: none; font-weight: bold; margin-right: 15px; }
+
+        /* لوحة التحكم والأسواق */
+        .container { padding: 20px 5%; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* كروت المنتجات */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .p-card { background: white; border-radius: 10px; padding: 15px; border: 1px solid #ddd; position: relative; }
+        .p-card img { width: 100%; height: 200px; object-fit: contain; }
+        .price { color: #B12704; font-size: 22px; font-weight: bold; }
+        .badge { background: #eee; padding: 3px 8px; border-radius: 5px; font-size: 12px; color: #555; }
+        
+        /* لوحة التاجر */
+        .seller-form { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 2px solid var(--amazon-orange); }
+        
+        /* زر الشراء */
+        .btn-buy { background: #ffd814; border: 1px solid #fcd200; width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-seller { background: var(--amazon-blue); color: white; padding: 10px; border-radius: 8px; cursor: pointer; border: none; }
+    </style>
+</head>
+<body>
+
+<div id="authScreen">
+    <div class="auth-card">
+        <h2 style="text-align:center">تسجيل الدخول في Sook Mall</h2>
+        <div class="role-selector">
+            <div id="roleBuyer" class="role-btn active" onclick="setRole('buyer')">أنا مشتري</div>
+            <div id="roleSeller" class="role-btn" onclick="setRole('seller')">أنا تاجر</div>
+        </div>
+        <input type="text" id="uName" class="input-field" style="margin-bottom:10px" placeholder="الاسم الرباعي">
+        <input type="text" id="uPhone" class="input-field" style="margin-bottom:10px" placeholder="رقم الواتساب">
+        <input type="text" id="uLoc" class="input-field" style="margin-bottom:10px" placeholder="الموقع الجغرافي (العنوان بالتفصيل)">
+        <select id="uPayment" class="input-field" style="margin-bottom:20px">
+            <option value="Cash">دفع عند الاستلام</option>
+            <option value="Vodafone Cash">فودافون كاش</option>
+            <option value="InstaPay">إنستا باي</option>
+        </select>
+        <button class="btn-buy" onclick="handleLogin()">دخول للمول</button>
+    </div>
+</div>
+
+<header>
+    <div style="font-size:24px; font-weight:bold">Sook Mall <span style="font-size:12px; color:var(--amazon-orange)">Egypt</span></div>
+    <nav>
+        <span class="nav-link" onclick="showSection('market')">المتجر</span>
+        <span id="sellerLink" class="nav-link" style="display:none" onclick="showSection('dashboard')">لوحة التاجر</span>
+        <span class="nav-link" style="color:white" onclick="logout()">خروج</span>
+    </nav>
+</header>
+
+<div class="container">
+    <div id="marketSection" class="section active">
+        <h2 id="welcomeUser">أهلاً بك في متجر مصر</h2>
+        <div class="product-grid" id="marketGrid"></div>
+    </div>
+
+    <div id="dashboardSection" class="section">
+        <div class="seller-form">
+            <h3>إضافة منتج جديد لمتجرك</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+                <select id="pType">
+                    <option value="تيشرت صغير">تيشرت صغير (سعر مقترح 200)</option>
+                    <option value="تيشرت متوسط">تيشرت متوسط (سعر مقترح 400)</option>
+                    <option value="تيشرت كبير">تيشرت كبير (سعر مقترح 500)</option>
+                    <option value="بالطو أطفالي">بالطو أطفالي (سعر مقترح 800)</option>
+                    <option value="بالطو رجالي">بالطو رجالي (سعر مقترح 1000)</option>
+                </select>
+                <input type="number" id="pPrice" placeholder="سعرك الخاص بالجنيه">
+                <input type="text" id="pAge" placeholder="ملائم لسن كم؟ (مثلاً 5-10 سنوات)">
+                <input type="text" id="pImg" placeholder="رابط صورة المنتج">
+            </div>
+            <button class="btn-seller" style="margin-top:15px; width:100%" onclick="sellerAddProduct()">نشر المنتج في المول</button>
+        </div>
+        <h3>منتجاتك المعروضة حالياً</h3>
+        <div class="product-grid" id="sellerGrid"></div>
+    </div>
+</div>
+
+<script>
+    // --- إعدادات فايربيس (ضع بياناتك هنا) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSy...",
+        authDomain: "your-project.firebaseapp.com",
+        databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+        projectId: "your-project",
+        storageBucket: "your-project.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let userRole = 'buyer';
+    let userData = JSON.parse(localStorage.getItem('sook_pro_user'));
+
+    function setRole(role) {
+        userRole = role;
+        document.getElementById('roleBuyer').classList.toggle('active', role === 'buyer');
+        document.getElementById('roleSeller').classList.toggle('active', role === 'seller');
+    }
+
+    function handleLogin() {
+        const name = document.getElementById('uName').value;
+        const phone = document.getElementById('uPhone').value;
+        const loc = document.getElementById('uLoc').value;
+        const pay = document.getElementById('uPayment').value;
+
+        if(name && phone && loc) {
+            userData = { name, phone, loc, pay, role: userRole, id: Date.now() };
+            localStorage.setItem('sook_pro_user', JSON.stringify(userData));
+            initApp();
+        } else { alert("يرجى إدخال البيانات الرباعية والعنوان بالكامل للأمان"); }
+    }
+
+    function initApp() {
+        if(!userData) return;
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('welcomeUser').innerText = `تسوق الآن يا ${userData.name.split(' ')[0]}`;
+        
+        if(userData.role === 'seller') {
+            document.getElementById('sellerLink').style.display = 'inline';
+        }
+        
+        loadMarket();
+        if(userData.role === 'seller') loadSellerProducts();
+    }
+
+    function showSection(sec) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(sec + 'Section').classList.add('active');
+    }
+
+    // وظائف التاجر
+    function sellerAddProduct() {
+        const type = document.getElementById('pType').value;
+        const price = document.getElementById('pPrice').value;
+        const age = document.getElementById('pAge').value;
+        const img = document.getElementById('pImg').value || 'https://via.placeholder.com/200';
+
+        if(price) {
+            db.ref('mall_products').push({
+                type, price, age, img,
+                sellerName: userData.name,
+                sellerPhone: userData.phone,
+                sellerLoc: userData.loc,
+                sellerId: userData.id,
+                rating: (Math.random() * 2 + 3).toFixed(1) // تقييم وهمي للبداية
+            });
+            alert("تم النشر بنجاح!");
+        }
+    }
+
+    // عرض المتجر للمشتري مع مقارنة التجار
+    function loadMarket() {
+        db.ref('mall_products').on('value', (snap) => {
+            const grid = document.getElementById('marketGrid');
+            grid.innerHTML = '';
+            const data = snap.val();
+            if(data) {
+                Object.values(data).reverse().forEach(p => {
+                    grid.innerHTML += `
+                        <div class="p-card">
+                            <span class="badge">${p.age}</span>
+                            <img src="${p.img}">
+                            <h3>${p.type}</h3>
+                            <div class="price">${p.price} ج.م</div>
+                            <div style="font-size:12px; color:#555; margin-top:10px">
+                                <b>التاجر:</b> ${p.sellerName}<br>
+                                <b>الموقع:</b> ${p.sellerLoc}<br>
+                                <span style="color:orange">⭐ تقييم التاجر: ${p.rating}</span>
+                            </div>
+                            <button class="btn-buy" onclick="confirmOrder('${p.type}', ${p.price}, '${p.sellerName}', '${p.sellerPhone}')">شراء الآن</button>
+                        </div>
+                    `;
+                });
+            }
+        });
+    }
+
+    function confirmOrder(item, price, sName, sPhone) {
+        const msg = `أريد شراء ${item} بسعر ${price} ج.م. أنا المشتري ${userData.name}, عنواني: ${userData.loc}, وسيلة الدفع المفضلة: ${userData.pay}`;
+        window.open(`https://wa.me/2${sPhone}?text=${encodeURIComponent(msg)}`);
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+
+    if(userData) initApp();
+</script>
+</body>
+</html>
