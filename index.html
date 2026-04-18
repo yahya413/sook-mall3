@@ -104,19 +104,19 @@
 </div>
 
 <script>
-    // --- إعدادات فايربيس (ضع بياناتك هنا) ---
-    const firebaseConfig = {
-        apiKey: "AIzaSy...",
-        authDomain: "your-project.firebaseapp.com",
-        databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-        projectId: "your-project",
-        storageBucket: "your-project.appspot.com",
-        messagingSenderId: "...",
-        appId: "..."
-    };
+    // --- إعدادات فايربيس (ضع بياناتك هنا) --- };
+const firebaseConfig = {
+  apiKey: "AIzaSyBmWe2JfT0XVYdWQFjPVnucz9sRT53CE7Y",
+  authDomain: "sook-mall3.firebaseapp.com",
+   databaseURL: "https://sook-mall3-default-rtdb.firebaseio.com",
+  projectId: "sook-mall3",
+  storageBucket: "sook-mall3.firebasestorage.app",
+  messagingSenderId: "270335602475",
+  appId: "1:270335602475:web:538a53ad1533b7bf109f6e",
+  measurementId: "G-6QJNZ0GFT4"
+};
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    
 
     let userRole = 'buyer';
     let userData = JSON.parse(localStorage.getItem('sook_pro_user'));
