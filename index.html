@@ -4,57 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سوق مول 3 - SOOK MALL</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input, button { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-        button { background-color: #28a745; color: white; cursor: pointer; border: none; font-weight: bold; }
-        button:hover { background-color: #218838; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #1a73e8; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #218838; opacity: 0.9; }
         .btn-seller { background-color: #007bff; }
         .hidden { display: none; }
-        .product-card { border: 1px solid #ddd; padding: 15px; margin: 10px; background: #fff; border-radius: 8px; }
-        .product-card img { max-width: 100%; height: auto; border-radius: 5px; }
+        .product-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        .product-card img { width: 100%; height: 200px; object-fit: contain; border-radius: 8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Welcome to SOOK MALL 3</h1>
+    <h1>SOOK MALL 3 🛒</h1>
     
     <div id="loginSection">
         <h3>تسجيل الدخول</h3>
         <input type="text" id="userName" placeholder="اسمك">
         <input type="text" id="userPhone" placeholder="رقم الموبايل">
         <select id="userRole">
-            <option value="buyer">مشتري</option>
-            <option value="seller">تاجر</option>
+            <option value="buyer">أنا مشتري</option>
+            <option value="seller">أنا تاجر</option>
         </select>
         <button onclick="handleLogin()">دخول المول</button>
     </div>
 
     <div id="sellerSection" class="hidden">
-        <h2>لوحة تحكم التاجر</h2>
-        <input type="text" id="pName" placeholder="اسم المنتج (مثلاً: تيشرت قطن)">
-        <input type="number" id="pPrice" placeholder="السعر">
-        <input type="text" id="pImg" placeholder="رابط صورة المنتج (URL)">
-        <button class="btn-seller" onclick="uploadProduct()">نشر المنتج في المول</button>
-        <button onclick="logout()" style="background:#666">خروج</button>
+        <h2 style="color: #007bff;">لوحة التاجر</h2>
+        <input type="text" id="pName" placeholder="اسم المنتج">
+        <input type="number" id="pPrice" placeholder="السعر بالجنيه">
+        <input type="text" id="pImg" placeholder="الصق رابط الصورة هنا (Image Address)">
+        <button class="btn-seller" onclick="uploadProduct()">نشر المنتج الآن</button>
+        <button onclick="logout()" style="background:#dc3545">تسجيل خروج</button>
     </div>
 
     <div id="buyerSection" class="hidden">
-        <h2>المنتجات المعروضة في المول</h2>
+        <h2 style="color: #28a745;">المنتجات المعروضة</h2>
         <div id="productsList"></div>
-        <button onclick="logout()" style="background:#666">خروج</button>
+        <button onclick="logout()" style="background:#dc3545">تسجيل خروج</button>
     </div>
 </div>
 
 <script>
-    // 1. إعدادات فايربيس الخاصة بمشروعك (SOOK-MALL3)
+    // إعداداتك الحقيقية من الصور اللي بعتها
     const firebaseConfig = {
-        apiKey: "AIzaSyB6vS...", // المفاتيح الخاصة بك
+        apiKey: "AIzaSyB6vS-tFOnx17I6Z2O3jYmP8hC5_N6qJ4",
         authDomain: "sook-mall3.firebaseapp.com",
         databaseURL: "https://sook-mall3-default-rtdb.firebaseio.com",
         projectId: "sook-mall3",
@@ -64,13 +66,10 @@
         measurementId: "G-6QJNZ0GFT4"
     };
 
-    // 2. تشغيل المحرك
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
     let userData = {};
 
-    // 3. وظيفة الدخول
     function handleLogin() {
         const name = document.getElementById('userName').value;
         const phone = document.getElementById('userPhone').value;
@@ -79,19 +78,17 @@
         if(name && phone) {
             userData = { name, phone, role };
             document.getElementById('loginSection').classList.add('hidden');
-            
             if(role === 'seller') {
                 document.getElementById('sellerSection').classList.remove('hidden');
             } else {
                 document.getElementById('buyerSection').classList.remove('hidden');
-                loadProducts(); // تحميل المنتجات للمشتري
+                loadProducts();
             }
         } else {
-            alert("يرجى إدخال البيانات");
+            alert("اكتب اسمك ورقمك يا بطل!");
         }
     }
 
-    // 4. وظيفة نشر المنتج (للتاجر)
     function uploadProduct() {
         const name = document.getElementById('pName').value;
         const price = document.getElementById('pPrice').value;
@@ -105,44 +102,37 @@
                 sellerName: userData.name,
                 sellerPhone: userData.phone
             }).then(() => {
-                alert("تم نشر المنتج بنجاح في سوق مول!");
+                alert("مبروك! المنتج نزل في المول 🎉");
                 document.getElementById('pName').value = '';
                 document.getElementById('pPrice').value = '';
                 document.getElementById('pImg').value = '';
-            }).catch((error) => {
-                alert("خطأ: " + error.message);
+            }).catch((err) => {
+                alert("حصل خطأ: " + err.message);
             });
         } else {
-            alert("يرجى ملء جميع الخانات");
+            alert("املأ كل الخانات الأول!");
         }
     }
 
-    // 5. وظيفة عرض المنتجات (للمشتري)
     function loadProducts() {
-        const productsList = document.getElementById('productsList');
+        const list = document.getElementById('productsList');
         database.ref('products').on('value', (snapshot) => {
-            productsList.innerHTML = '';
-            snapshot.forEach((childSnapshot) => {
-                const product = childSnapshot.val();
-                productsList.innerHTML += `
+            list.innerHTML = '';
+            snapshot.forEach((child) => {
+                const p = child.val();
+                list.innerHTML += `
                     <div class="product-card">
-                        <img src="${product.image}" alt="منتج">
-                        <h3>${product.name}</h3>
-                        <p>السعر: ${product.price} جنيه</p>
-                        <p>البائع: ${product.sellerName}</p>
-                        <a href="https://wa.me/${product.sellerPhone}" target="_blank">
-                            <button style="background:#25D366">تواصل عبر واتساب</button>
-                        </a>
-                    </div>
-                `;
+                        <img src="${p.image}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                        <h3>${p.name}</h3>
+                        <p>السعر: <b>${p.price} جنيه</b></p>
+                        <p>البائع: ${p.sellerName}</p>
+                        <button onclick="window.open('https://wa.me/${p.sellerPhone}')" style="background:#25d366">واتساب</button>
+                    </div>`;
             });
         });
     }
 
-    function logout() {
-        location.reload();
-    }
+    function logout() { location.reload(); }
 </script>
-
 </body>
 </html>
